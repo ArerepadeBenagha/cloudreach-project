@@ -29,14 +29,14 @@ resource "aws_subnet" "main-private-1" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-east-1b"
-  tags = merge(local.common_tags, { Name = "main-private-1", Company = "cloudreach" })
+  tags              = merge(local.common_tags, { Name = "main-private-1", Company = "cloudreach" })
 }
 
 resource "aws_subnet" "main-private-2" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.3.0/24"
   availability_zone = "us-east-1c"
-  tags = merge(local.common_tags, { Name = "main-private-2", Company = "cloudreach" })
+  tags              = merge(local.common_tags, { Name = "main-private-2", Company = "cloudreach" })
 }
 
 ///igw
@@ -97,14 +97,14 @@ resource "aws_security_group" "server-sg" {
     security_groups = [aws_security_group.bastion.id]
   }
 
-    ingress {
+  ingress {
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
     security_groups = [aws_security_group.bastion.id]
   }
 
-    ingress {
+  ingress {
     from_port       = 8080
     to_port         = 8080
     protocol        = "tcp"
@@ -168,7 +168,7 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_eip" "cloudreach-eip" {
-  vpc      = true
+  vpc = true
 }
 
 resource "aws_nat_gateway" "cloureach-nat" {
@@ -178,17 +178,14 @@ resource "aws_nat_gateway" "cloureach-nat" {
   tags = {
     Name = "gw NAT"
   }
-
-  # To ensure proper ordering, it is recommended to add an explicit dependency
-  # on the Internet Gateway for the VPC.
-  # depends_on = [aws_internet_gateway.cloureach-nat]
 }
+
 ////route natgateway
 resource "aws_route_table" "public-nat" {
   vpc_id = aws_vpc.main.id
 
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.cloureach-nat.id
   }
 
