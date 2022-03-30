@@ -81,3 +81,85 @@ resource "aws_lb_target_group" "cloudreachwork_8080" {
     local.common_tags
   )
 }
+
+resource "aws_lb_listener" "cloureach_443" {
+  load_balancer_arn = aws_lb.cloudreachwork_lb.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate.cloudreach_cert.arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.cloudreachwork_8080.arn
+  }
+}
+
+resource "aws_lb_listener" "cloureach_8080_rd" {
+  load_balancer_arn = aws_lb.cloudreachwork_lb.arn
+  port              = 8080
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = 443
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+#####------ Certificate -----------####
+resource "aws_acm_certificate" "cloudreach_cert" {
+  domain_name       = "*.elitelabtools.com"
+  validation_method = "DNS"
+  lifecycle {
+    create_before_destroy = true
+  }
+  tags = merge(local.common_tags,
+    { Name = "cloudreachserver.elitelabtools.com"
+  Cert = "cloureach" })
+}
+
+###------- Cert Validation -------###
+###-------------------------------###
+data "aws_route53_zone" "primary" {
+  name = "elitelabtools.com"
+}
+resource "aws_route53_record" "cloudreach_record" {
+  for_each = {
+    for dvo in aws_acm_certificate.cloudreach_cert.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.primary.zone_id
+}
+
+resource "aws_acm_certificate_validation" "cloudreach_cert" {
+  certificate_arn         = aws_acm_certificate.cloudreach_cert.arn
+  validation_record_fqdns = [for record in aws_route53_record.cloudreach_record : record.fqdn]
+}
+
+# ##------- ALB Alias record ----------##
+###-----------------------------------###
+resource "aws_route53_record" "www" {
+  zone_id = data.aws_route53_zone.primary.zone_id
+  name    = "cloudreachserver.elitelabtools.com"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.cloudreachwork_lb.dns_name
+    zone_id                = aws_lb.cloudreachwork_lb.zone_id
+    evaluate_target_health = true
+  }
+}
