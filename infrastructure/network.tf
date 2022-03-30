@@ -3,7 +3,7 @@ resource "aws_vpc" "main" {
   instance_tenancy     = "default"
   enable_dns_hostnames = "true"
 
-  tags = merge(local.common_tags, { Name = "main", Company = "cloudreach" })
+  tags = merge(local.common_tags, { Name = "cloudreach", Company = "cloudreach" })
 }
 
 ////subnet - public
