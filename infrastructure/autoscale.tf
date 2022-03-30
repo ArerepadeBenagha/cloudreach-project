@@ -27,7 +27,7 @@ resource "aws_autoscaling_group" "cloudreach-autoscaling" {
   name                      = "cloudreach-autoscaling"
   vpc_zone_identifier       = [aws_subnet.main-private-1.id, aws_subnet.main-private-2.id]
   launch_configuration      = aws_launch_configuration.cloudreach-launchconfig.name
-  target_group_arns         = [aws_lb_target_group.cloudreachwork_443.arn]
+  target_group_arns         = [aws_lb_target_group.cloudreachwork_8080.arn]
   min_size                  = 1
   max_size                  = 2
   health_check_grace_period = 300
@@ -59,10 +59,10 @@ resource "aws_lb" "cloudreachwork_lb" {
   tags    = merge({ Name = "cloudreachwork-${var.app_tier}" }, local.common_tags)
 }
 
-resource "aws_lb_target_group" "cloudreachwork_443" {
-  name     = "cloudreachwork-443-${var.app_tier}"
+resource "aws_lb_target_group" "cloudreachwork_8080" {
+  name     = "cloudreachwork-8080-${var.app_tier}"
   port     = 8080
-  protocol = "HTTPS"
+  protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
 
   health_check {
@@ -76,7 +76,7 @@ resource "aws_lb_target_group" "cloudreachwork_443" {
   }
 
   tags = merge(
-    { Name = "cloudreachwork-443-${var.app_tier}" },
+    { Name = "cloudreachwork-8080-${var.app_tier}" },
     { Description = "ALB Target Group for web application HTTPS traffic" },
     local.common_tags
   )
