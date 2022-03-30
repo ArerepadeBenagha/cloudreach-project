@@ -1,5 +1,4 @@
 # scale up alarm
-
 resource "aws_autoscaling_policy" "cloudreach-cpu-policy" {
   name                   = "cloudreach-cpu-policy"
   autoscaling_group_name = aws_autoscaling_group.cloudreach-autoscaling.name
@@ -8,7 +7,6 @@ resource "aws_autoscaling_policy" "cloudreach-cpu-policy" {
   cooldown               = "300"
   policy_type            = "SimpleScaling"
 }
-
 resource "aws_cloudwatch_metric_alarm" "cloudreach-cpu-alarm" {
   alarm_name          = "cloudreach-cpu-alarm"
   alarm_description   = "cloudreach-cpu-alarm"

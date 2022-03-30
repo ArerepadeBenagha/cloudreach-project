@@ -52,7 +52,7 @@ resource "aws_lb" "cloudreachwork_lb" {
 
   security_groups = [
     aws_security_group.server-sg.id,
-    aws_security_group.bastion.id
+    aws_security_group.alb.id
   ]
 
   subnets = [aws_subnet.main-public.id, aws_subnet.main-public-1.id]
@@ -61,7 +61,7 @@ resource "aws_lb" "cloudreachwork_lb" {
 
 resource "aws_lb_target_group" "cloudreachwork_443" {
   name     = "cloudreachwork-443-${var.app_tier}"
-  port     = 443
+  port     = 8080
   protocol = "HTTPS"
   vpc_id   = aws_vpc.main.id
 
